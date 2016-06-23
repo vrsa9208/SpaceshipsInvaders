@@ -8,6 +8,7 @@
 #define RIGHT 77
 #define ESCAPE 27
 
+//Pendiente por ver el video 8
 void gotoxy(int x, int y){
 	//Manejador de la consola
 	HANDLE consoleHandle;
@@ -69,19 +70,22 @@ private:
 	int x;
 	int y;
 	int corazones;
+	int vidas;
 public:
-	Nave(int _x, int _y, int _corazones);
+	Nave(int _x, int _y, int _corazones, int _vidas);
 	void pintar();
 	void borrar();
 	void mover(char tecla);
 	void pintarCorazones();
+	void morir();
 };
 
-Nave::Nave(int _x, int _y, int _corazones)
+Nave::Nave(int _x, int _y, int _corazones, int _vidas)
 {
 	x = _x;
 	y = _y;
 	corazones = _corazones;
+	vidas = _vidas;
 }
 
 void Nave::pintar()
@@ -97,11 +101,11 @@ void Nave::pintar()
 void Nave::borrar()
 {
 	gotoxy(x, y);
-	printf("     ");
+	printf("       ");
 	gotoxy(x, y + 1);
-	printf("     ");  
+	printf("       ");  
 	gotoxy(x, y + 2);
-	printf("     ");  
+	printf("       ");  
 }
 
 void Nave::mover(char tecla)
@@ -118,6 +122,8 @@ void Nave::mover(char tecla)
 
 void Nave::pintarCorazones()
 {
+	gotoxy(50, 2);
+	printf("Vidas: %i", vidas);
 	gotoxy(64, 2);
 	printf("Salud");
 	gotoxy(70, 2);
@@ -129,14 +135,65 @@ void Nave::pintarCorazones()
 	}
 }
 
+void Nave::morir() 
+{
+	if (corazones == 0)
+	{
+		borrar();
+		gotoxy(x, y);     printf("   **   ");
+		gotoxy(x, y + 1); printf("  ****  ");
+		gotoxy(x, y + 2); printf("   **   ");
+		Sleep(200);
+		borrar();
+		gotoxy(x, y);     printf(" * ** * ");
+		gotoxy(x, y + 1); printf("  ****  ");
+		gotoxy(x, y + 2); printf(" * ** * ");
+		Sleep(200);
+		borrar();
+		vidas--;
+		corazones = 3;
+		pintarCorazones();
+		pintar();
+	}
+}
+
+class Asteroide 
+{
+	int x, y;
+public:
+	Asteroide(int _x, int _y) : x(_x), y(_y) {}
+	void pintar();
+	void mover();
+
+};
+
+void Asteroide::pintar()
+{
+	gotoxy(x, y); printf("%c", 184);
+}
+
+void Asteroide::mover()
+{
+	gotoxy(x, y); printf(" ");
+	y++;
+	if (y > 32)
+	{
+		x = rand() % 71 + 4;
+		y = 4;
+	}
+	pintar();
+}
+
 int main()
 {
 	hideCursor();
 	paintLimits();
 	bool gameOver = false;
-	Nave* nave = new Nave(7,7,3);
+	Nave* nave = new Nave(7,7,3,3);
 	nave->pintar();
 	nave->pintarCorazones();
+
+	Asteroide* asteroide = new Asteroide(10, 4);
 	while (!gameOver)
 	{
 		if (_kbhit())
@@ -156,6 +213,8 @@ int main()
 				break;
 			}
 		}
+		asteroide->mover();
+		nave->morir();
 		Sleep(30);
 	}
 	return 0;
